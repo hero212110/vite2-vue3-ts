@@ -1,11 +1,9 @@
 import { createStore } from "vuex";
 
 export default createStore({
-  state() {
-    return {
-      count: 0,
-      abc: 12345,
-    };
+  state: {
+    count: 0,
+    abc: 12345,
   },
   mutations: {
     increment(state: any) {

@@ -1,19 +1,17 @@
 <template>
   <div class="wrapper">
-    <!-- <h1>info</h1>
-    <p>{{ store.state }}</p> -->
-
+    <!-- <h1>info</h1> -->
+    <!-- <p>{{ store.state.count }}</p> -->
     <div class="feature-wrapper">
       <div class="crud">
-        <el-button @click="addData">ADD</el-button>
-        <el-button @click="removeData">DELETE</el-button>
-        <el-button @click="reloadData">RELOAD</el-button>
+        <el-button type="success" @click="dialog = true">ADD</el-button>
+        <el-button type="danger" @click="removeData">DELETE</el-button>
+        <el-button type="primary" @click="reloadData">RELOAD</el-button>
       </div>
       <div class="search">
         <el-input v-model="pattern" placeholder="请输入内容"></el-input>
       </div>
     </div>
-
     <el-table
       :data="filteredData"
       v-loading="loading"
@@ -24,12 +22,33 @@
       <el-table-column prop="name" label="姓名" width="180"> </el-table-column>
       <el-table-column prop="address" label="地址"> </el-table-column>
     </el-table>
+
+    <el-dialog v-model="dialog" width="30%">
+      <el-form>
+        <el-form-item label="名称" prop="name">
+          <el-input v-model="name"></el-input>
+        </el-form-item>
+        <el-form-item label="地址" prop="address">
+          <el-input v-model="address"></el-input>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="addData">新增</el-button>
+        </el-form-item>
+      </el-form>
+    </el-dialog>
   </div>
 </template>
 <script lang="ts">
-import { ref, toRefs, reactive, defineComponent, computed } from "vue";
+import {
+  ref,
+  toRefs,
+  reactive,
+  defineComponent,
+  computed,
+  onMounted,
+} from "vue";
 import useBasicValue from "../composables/basic/useBasicValue";
-import useUserData from "../composables/user/useUserData";
+import UserService from "../service/mock/user";
 export default defineComponent({
   props: {},
   components: {},
@@ -38,15 +57,24 @@ export default defineComponent({
     const data = reactive({
       pattern: "",
       loading: false,
+      dialog: false,
+      name: null,
+      address: null,
+    });
+    onMounted(() => {
+      userData.value = UserService.getUserData();
     });
 
-    const { userData } = useUserData();
+    let userData: any = ref([]);
+
     const addData = () => {
       userData.value.push({
         date: new Date().toDateString(),
-        name: `名字${new Date().getTime()}`,
-        address: "上海市普陀区金沙江路 1517 弄",
+        name: data.name ?? "未輸入",
+        address: data.address ?? "未輸入",
       });
+      ResetForm();
+      data.dialog = false;
     };
 
     const removeData = () => {
@@ -60,6 +88,11 @@ export default defineComponent({
       setTimeout(() => {
         data.loading = false;
       }, 2000);
+    };
+
+    const ResetForm = () => {
+      data.name = null;
+      data.address = null;
     };
 
     const filteredData = computed(() => {
@@ -93,6 +126,7 @@ export default defineComponent({
 .wrapper {
   .feature-wrapper {
     display: flex;
+    flex-wrap: wrap;
     width: 100%;
     padding: 10px 0;
     .crud {
@@ -100,7 +134,6 @@ export default defineComponent({
       display: flex;
       justify-content: flex-start;
     }
-
     .search {
       width: 30%;
     }
