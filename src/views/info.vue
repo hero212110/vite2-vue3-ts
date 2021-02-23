@@ -24,15 +24,15 @@
     </el-table>
 
     <el-dialog v-model="dialog" width="30%">
-      <el-form>
+      <el-form :model="ruleForm" :rules="rules" ref="ruleFormsss">
         <el-form-item label="名称" prop="name">
-          <el-input v-model="name"></el-input>
+          <el-input v-model="ruleForm.name"></el-input>
         </el-form-item>
         <el-form-item label="地址" prop="address">
-          <el-input v-model="address"></el-input>
+          <el-input v-model="ruleForm.address"></el-input>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="addData">新增</el-button>
+          <el-button type="primary" @click="submitForm">新增</el-button>
         </el-form-item>
       </el-form>
     </el-dialog>
@@ -41,6 +41,7 @@
 <script lang="ts">
 import {
   ref,
+  unref,
   toRefs,
   reactive,
   defineComponent,
@@ -58,53 +59,68 @@ export default defineComponent({
       pattern: "",
       loading: false,
       dialog: false,
-      name: null,
-      address: null,
     });
-    onMounted(() => {
-      userData.value = UserService.getUserData();
-    });
-
     let userData: any = ref([]);
 
+    // Form
+    const ruleFormsss = ref(null);
+    const ruleForm: any = reactive({
+      name: "",
+      address: "",
+    });
+    const rules = {
+      name: [{ required: true, message: "请输入", trigger: "blur" }],
+      address: [{ required: true, message: "请输入", trigger: "blur" }],
+    };
+    const submitForm = async () => {
+      const form: any = unref(ruleFormsss);
+      if (!form) return;
+      try {
+        await form.validate();
+        addData();
+      } catch (error) {}
+    };
+    const ResetForm = () => {
+      ruleForm.name = null;
+      ruleForm.address = null;
+    };
+    // Table
     const addData = () => {
-      userData.value.push({
-        date: new Date().toDateString(),
-        name: data.name ?? "未輸入",
-        address: data.address ?? "未輸入",
-      });
+      const { name, address } = ruleForm;
+      const date = new Date().toDateString();
+      userData.value.push({ date, name, address });
+      store.commit("SET_USER_DATA", userData.value);
       ResetForm();
       data.dialog = false;
     };
-
     const removeData = () => {
       if (userData.value.length > 0) {
         userData.value.length = userData.value.length - 1;
+        store.commit("SET_USER_DATA", userData.value);
       }
     };
-
     const reloadData = () => {
       data.loading = true;
       setTimeout(() => {
         data.loading = false;
       }, 2000);
     };
-
-    const ResetForm = () => {
-      data.name = null;
-      data.address = null;
-    };
-
     const filteredData = computed(() => {
       if (!data.pattern) {
         return userData.value;
       } else {
-        let tmp = userData.value.filter((item: any) => {
-          if (item.name.indexOf(data.pattern) != -1) {
-            return item;
+        return userData.value.filter((e: any) => {
+          if (e.name.indexOf(data.pattern) != -1) {
+            return e;
           }
         });
-        return tmp;
+      }
+    });
+    onMounted(() => {
+      if (store.state.userData && store.state.userData?.length > 0) {
+        userData.value = store.state.userData;
+      } else {
+        userData.value = UserService.getUserData();
       }
     });
 
@@ -113,9 +129,12 @@ export default defineComponent({
       route,
       router,
       store,
+      ruleForm,
+      rules,
+      submitForm,
+      ruleFormsss,
       userData,
       filteredData,
-      addData,
       removeData,
       reloadData,
     };

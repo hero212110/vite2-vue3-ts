@@ -5,8 +5,10 @@ const router = createRouter({
   history: createWebHistory(),
   routes,
 });
-router.beforeEach((to, from) => {
-  store.commit('increment')
-  console.log(to, store.state.count);
+router.beforeEach((to, from, next) => {
+  let tmp: any = localStorage.getItem("userData");
+  console.log(localStorage.getItem("userData"));
+  store.commit("SET_USER_DATA", JSON.parse(tmp));
+  next();
 });
 export default router;

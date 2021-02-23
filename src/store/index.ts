@@ -3,16 +3,17 @@ import { createStore } from "vuex";
 export default createStore({
   state: {
     count: 0,
-    abc: 12345,
+    userData: [],
   },
   mutations: {
-    increment(state: any) {
-      state.count++;
+    SET_USER_DATA(state, val) {
+      state.userData = JSON.parse(JSON.stringify(val));
+      localStorage.setItem("userData", JSON.stringify(state.userData));
     },
   },
   actions: {
-    increment(context) {
-      context.commit("increment");
-    },
+    // increment(context) {
+    //   context.commit("increment");
+    // },
   },
 });
